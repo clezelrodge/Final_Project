@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FileTrack{% endblock %}</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #dceee6, #f5f0df);
+            min-height: 100vh;
+        }
+
+        .dashboard-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: linear-gradient(180deg, #2f654f, #8a6f47);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        .dashboard-sidebar.hidden {
+            transform: translateX(-100%);
+        }
+        .sidebar-toggle {
+            position: fixed;
+            left: 330px;
+            top: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(47, 101, 79, 0.6);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            z-index: 101;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-toggle:hover {
+            background: rgba(47, 101, 79, 0.8);
+            transform: scale(1.05);
+        }
+        .dashboard-sidebar.hidden + .sidebar-toggle {
+            left: 20px;
+        }
+        .dashboard-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            min-height: 104px;
+            width: 100%;
+            margin: 24px auto 34px;
+            padding: 6px 8px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 14px;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
+        }
+        .dashboard-logo img {
+            width: 255px;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            transform: none;
+            filter: contrast(1.18) saturate(1.08);
+            transform-origin: center;
+        }
+        .dashboard-role {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dashboard-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .dashboard-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 14px;
+            transition: all 0.3s;
+        }
+        .dashboard-menu a:hover,
+        .dashboard-menu a.active {
+            background: rgba(255, 255, 255, 0.16);
+            color: white;
+        }
+        .logout-btn {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.16);
+            border: none;
+            color: white;
+            border-radius: 14px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 30px;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 700;
+        }
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .dashboard-main {
+            margin-left: 320px;
+            padding: 30px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+        .dashboard-main.expanded {
+            margin-left: 0;
+        }
+        .flash-messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        .flash-message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .flash-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash-warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .flash-info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+
+        @media (max-width: 768px) {
+            .dashboard-sidebar {
+                transform: translateX(-100%);
+            }
+            .dashboard-sidebar:not(.hidden) {
+                transform: translateX(0);
+            }
+            .dashboard-main {
+                margin-left: 0;
+            }
+            .sidebar-toggle {
+                left: 20px;
+            }
+            .dashboard-sidebar:not(.hidden) + .sidebar-toggle {
+                left: 330px;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar" id="sidebar">
+        <div class="dashboard-logo">
+            <img src="{{ url_for('static', filename='img/logo-wide.png') }}" alt="FileTrack Logo">
+        </div>
+        <p class="dashboard-role">{{ session.get('role', 'User')|title }} Dashboard</p>
+        
+        <nav class="dashboard-menu">
+            {% block sidebar_menu %}{% endblock %}
+        </nav>
+
+        <a href="{{ url_for('logout') }}" class="logout-btn">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+    </aside>
+
+    <!-- Sidebar Toggle -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <!-- Main Content -->
+    <section class="dashboard-main" id="mainContent">
+        {% block content %}{% endblock %}
+    </section>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            sidebar.classList.toggle('hidden');
+            mainContent.classList.toggle('expanded');
+            localStorage.setItem('sidebarHidden', sidebar.classList.contains('hidden'));
+        }
+        window.addEventListener('load', function() {
+            if (localStorage.getItem('sidebarHidden') === 'true') {
+                document.getElementById('sidebar').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('expanded');
+            }
+        });
+        setTimeout(function() {
+            const fm = document.querySelector('.flash-messages');
+            if (fm) fm.style.display = 'none';
+        }, 5000);
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

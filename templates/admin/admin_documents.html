@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents - FileTrack Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #dceee6, #f5f0df); min-height: 100vh; }
+        .dashboard-sidebar { position: fixed; left: 0; top: 0; width: 320px; height: 100vh; background: linear-gradient(180deg, #2f654f, #8a6f47); color: white; padding: 20px; overflow-y: auto; transition: transform 0.3s ease; z-index: 100; }
+        .dashboard-sidebar.hidden { transform: translateX(-100%); }
+        .sidebar-toggle { position: fixed; left: 340px; top: 20px; width: 44px; height: 44px; background: rgba(47, 101, 79, 0.8); backdrop-filter: blur(10px); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; transition: all 0.3s ease; z-index: 101; }
+        .sidebar-toggle:hover { background: rgba(47, 101, 79, 1); transform: scale(1.05); }
+        .dashboard-sidebar.hidden ~ .sidebar-toggle, .dashboard-sidebar.hidden + .sidebar-toggle { left: 20px; }
+        .dashboard-logo { display: flex; align-items: center; justify-content: center; min-height: 104px; width: 100%; margin: 24px auto 34px; padding: 6px 8px; overflow: hidden; background: rgba(255, 255, 255, 0.94); border-radius: 14px; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14); }
+        .dashboard-logo img { width: 255px; max-width: 100%; height: auto; object-fit: contain; transform: none; filter: contrast(1.18) saturate(1.08); transform-origin: center; }
+        .dashboard-role { color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        .dashboard-menu { display: flex; flex-direction: column; gap: 5px; }
+        .dashboard-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 14px; transition: all 0.3s; }
+        .dashboard-menu a:hover, .dashboard-menu a.active { background: rgba(255, 255, 255, 0.16); color: white; }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(255, 255, 255, 0.16); border: none; color: white; border-radius: 14px; cursor: pointer; width: 100%; margin-top: 30px; text-decoration: none; transition: all 0.3s; font-weight: 700; }
+        .logout-btn:hover { background: rgba(255, 255, 255, 0.25); }
+        .dashboard-main { margin-left: 320px; padding: 30px; padding-left: 80px; min-height: 100vh; transition: margin-left 0.3s ease; }
+        .dashboard-main.expanded { margin-left: 0; }
+        .page-header { margin-bottom: 30px; }
+        .page-header h1 { font-size: 1.8rem; color: #202b3f; margin-bottom: 5px; }
+        .page-header p { color: #667085; }
+        .card { background: white; padding: 28px; border-radius: 28px; box-shadow: 0 18px 50px rgba(38, 75, 58, 0.08); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { color: #202b3f; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; }
+        td { color: #667085; }
+        .status { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+        .status.Available { background: #eaf4ef; color: #2f654f; }
+        .status.Borrowed { background: #fff1e6; color: #9a5a1f; }
+        .status.Pending { background: #fff7d6; color: #8a6f00; }
+        .status.Returned { background: #eaf4ef; color: #2f654f; }
+        .status.Missing { background: #f8d7da; color: #721c24; }
+        .flash-messages { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        .flash-message { padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; font-weight: 500; }
+        .flash-success { background-color: #d4edda; color: #155724; }
+        .flash-error { background-color: #f8d7da; color: #721c24; }
+        @media (max-width: 768px) { .dashboard-sidebar { transform: translateX(-100%); } .dashboard-sidebar:not(.hidden) { transform: translateX(0); } .dashboard-main { margin-left: 0; } .sidebar-toggle { left: 20px; } .dashboard-sidebar:not(.hidden) + .sidebar-toggle { left: 330px; } }
+        
+        .add-doc-btn { padding: 12px 24px; background: #2f654f; color: white; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; transition: all 0.3s; font-family: 'Poppins', sans-serif; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .add-doc-btn:hover { background: #234d3b; }
+        .page-header-flex { display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Modal Styles */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #fff; border-radius: 24px; padding: 32px; width: 90%; max-width: 620px; max-height: 88vh; overflow-y: auto; box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2); animation: modalIn 0.3s ease; }
+        @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header h2 { font-size: 20px; color: #202b3f; }
+        .modal-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: #f3f5f2; color: #667085; cursor: pointer; font-size: 16px; transition: all 0.2s; }
+        .modal-close:hover { background: #e4e7ec; color: #202b3f; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #202b3f; margin-bottom: 6px; }
+        .form-group input, .form-group select { width: 100%; height: 44px; padding: 0 14px; border: 1px solid #e4e7ec; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 13px; color: #202b3f; outline: none; transition: border-color 0.3s; }
+        .form-group input:focus, .form-group select:focus { border-color: #2f654f; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-help { color: #667085; font-size: 12px; line-height: 1.5; margin-top: -4px; margin-bottom: 14px; }
+        .modal-submit { width: 100%; height: 44px; border: none; border-radius: 12px; background: #2f654f; color: #fff; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: all 0.3s; }
+        .modal-submit:hover { background: #234d3b; }
+        .column-guide { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
+        .guide-card { background: rgba(255, 255, 255, 0.76); border: 1px solid #e4e7ec; border-radius: 16px; padding: 14px; box-shadow: 0 12px 30px rgba(38, 75, 58, 0.06); }
+        .guide-card strong { display: block; color: #2f654f; margin-bottom: 5px; }
+        .guide-card span { color: #667085; font-size: 12px; line-height: 1.45; }
+        .table-wrap { overflow-x: auto; }
+        .doc-id { font-weight: 700; color: #2f654f; }
+    </style>
+</head>
+<body>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <aside class="dashboard-sidebar" id="sidebar">
+        <div class="dashboard-logo">
+            <img src="{{ url_for('static', filename='img/logo-wide.png') }}" alt="FileTrack Logo">
+        </div>
+        <p class="dashboard-role">Admin Dashboard</p>
+        <nav class="dashboard-menu">
+            <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-table-columns"></i> Overview</a>
+            <a href="{{ url_for('admin_documents') }}" class="active"><i class="fa-solid fa-folder-plus"></i> Documents</a>
+            <a href="{{ url_for('admin_users') }}"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="{{ url_for('admin_logs') }}"><i class="fa-solid fa-clock-rotate-left"></i> Logs</a>
+            <a href="{{ url_for('admin_hardware') }}"><i class="fa-solid fa-microchip"></i> Hardware</a>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </aside>
+
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+
+    <section class="dashboard-main" id="mainContent">
+        <div class="page-header page-header-flex">
+            <div>
+                <h1>Guidance Documents Management</h1>
+                <p>Register, track, borrow, return, and monitor Guidance Office physical documents through RFID.</p>
+            </div>
+            <button onclick="openAddDocumentModal()" class="add-doc-btn"><i class="fa-solid fa-plus"></i> Add Document</button>
+        </div>
+        <div class="column-guide">
+            <div class="guide-card">
+                <strong>Column 1</strong>
+                <span>Student Profile Records</span>
+            </div>
+            <div class="guide-card">
+                <strong>Column 2</strong>
+                <span>Counseling and Referral Records</span>
+            </div>
+            <div class="guide-card">
+                <strong>Column 3</strong>
+                <span>Good Moral, Incident, and Monitoring Records</span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document ID</th>
+                        <th>Student</th>
+                        <th>Title</th>
+                        <th>Document Type</th>
+                        <th>RFID Tag</th>
+                        <th>Location</th>
+                        <th>Assigned User</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr>
+                        <td><span class="doc-id">{{ doc.document_code or ('DOC-' ~ doc.doc_id) }}</span></td>
+                        <td>
+                            {{ doc.student_name or 'Not Set' }}<br>
+                            <small>{{ doc.student_id or 'No Student ID' }}</small>
+                        </td>
+                        <td>{{ doc.title }}</td>
+                        <td>{{ doc.document_type or 'Not Categorized' }}</td>
+                        <td><code>{{ doc.rfid_tag }}</code></td>
+                        <td>{{ doc.location or 'Not Assigned' }}</td>
+                        <td>
+                            {% if doc.assigned_user_name %}
+                                {{ doc.assigned_user_name }}<br>
+                                <small>{{ doc.assigned_user_email or doc.assigned_username }}</small>
+                            {% else %}
+                                Admin controlled
+                            {% endif %}
+                        </td>
+                        <td><span class="status {{ doc.status }}">{{ doc.status }}</span></td>
+                        <td>{{ doc.remarks or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="9" style="text-align: center;">No documents found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add Document Modal -->
+    <div class="modal-overlay" id="addDocumentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-plus" style="color: #2f654f; margin-right: 8px;"></i> Add New Document</h2>
+                <button class="modal-close" onclick="closeAddDocumentModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form action="{{ url_for('add_document') }}" method="POST">
+                <div class="form-group">
+                    <label>Document Title</label>
+                    <input type="text" name="title" placeholder="e.g., Student Information Sheet" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student Name</label>
+                        <input type="text" name="student_name" placeholder="e.g., Juan Dela Cruz" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Student ID</label>
+                        <input type="text" name="student_id" placeholder="e.g., 2026-001">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Document Type</label>
+                    <select name="document_type" id="documentTypeSelect" required>
+                        <option value="">Select Document Type</option>
+                        <option value="Student Profile Record" data-column="1">Student Profile Record - Column 1</option>
+                        <option value="Counseling and Referral Record" data-column="2">Counseling and Referral Record - Column 2</option>
+                        <option value="Good Moral / Incident / Monitoring Record" data-column="3">Good Moral / Incident / Monitoring Record - Column 3</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                    <label>RFID Tag</label>
+                    <input type="text" name="rfid_tag" placeholder="e.g., RFID011" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Assigned User</label>
+                    <select name="assigned_user_id">
+                        <option value="">Admin controlled / no specific user</option>
+                        {% for user in users %}
+                            <option value="{{ user.user_id }}">
+                                {{ user.full_name }} - {{ user.email or user.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <input type="text" name="remarks" placeholder="e.g., for counseling follow-up">
+                </div>
+                <p class="form-help">Each document title receives one unique RFID tag. The document type automatically matches the correct prototype column.</p>
+                <button type="submit" class="modal-submit">Add Document</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('hidden');
+            document.getElementById('mainContent').classList.toggle('expanded');
+            localStorage.setItem('sidebarHidden', document.getElementById('sidebar').classList.contains('hidden'));
+        }
+        window.addEventListener('load', function() {
+            if (localStorage.getItem('sidebarHidden') === 'true') {
+                document.getElementById('sidebar').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('expanded');
+            }
+        });
+        setTimeout(function() { const fm = document.querySelector('.flash-messages'); if (fm) fm.style.display = 'none'; }, 5000);
+
+        // Add Document Modal Functions
+        function openAddDocumentModal() {
+            document.getElementById('addDocumentModal').classList.add('active');
+        }
+        function closeAddDocumentModal() {
+            document.getElementById('addDocumentModal').classList.remove('active');
+        }
+        document.getElementById('addDocumentModal').addEventListener('click', function (e) {
+            if (e.target === this) closeAddDocumentModal();
+        });
+    </script>
+</body>
+</html>

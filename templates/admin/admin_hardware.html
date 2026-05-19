@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Status - FileTrack Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #dceee6, #f5f0df); min-height: 100vh; color: #202b3f; }
+        .dashboard-sidebar { position: fixed; left: 0; top: 0; width: 320px; height: 100vh; background: linear-gradient(180deg, #2f654f, #8a6f47); color: white; padding: 20px; overflow-y: auto; transition: transform 0.3s ease; z-index: 100; }
+        .dashboard-sidebar.hidden { transform: translateX(-100%); }
+        .sidebar-toggle { position: fixed; left: 340px; top: 20px; width: 44px; height: 44px; background: rgba(47, 101, 79, 0.8); backdrop-filter: blur(10px); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; transition: all 0.3s ease; z-index: 101; }
+        .sidebar-toggle:hover { background: rgba(47, 101, 79, 1); transform: scale(1.05); }
+        .dashboard-sidebar.hidden ~ .sidebar-toggle, .dashboard-sidebar.hidden + .sidebar-toggle { left: 20px; }
+        .dashboard-logo { display: flex; align-items: center; justify-content: center; min-height: 104px; width: 100%; margin: 24px auto 34px; padding: 6px 8px; overflow: hidden; background: rgba(255, 255, 255, 0.94); border-radius: 14px; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14); }
+        .dashboard-logo img { width: 255px; max-width: 100%; height: auto; object-fit: contain; filter: contrast(1.18) saturate(1.08); }
+        .dashboard-role { color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        .dashboard-menu { display: flex; flex-direction: column; gap: 5px; }
+        .dashboard-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 14px; transition: all 0.3s; }
+        .dashboard-menu a:hover, .dashboard-menu a.active { background: rgba(255, 255, 255, 0.16); color: white; }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(255, 255, 255, 0.16); border: none; color: white; border-radius: 14px; cursor: pointer; width: 100%; margin-top: 30px; text-decoration: none; transition: all 0.3s; font-weight: 700; }
+        .logout-btn:hover { background: rgba(255, 255, 255, 0.25); }
+        .dashboard-main { margin-left: 320px; padding: 30px; padding-left: 80px; min-height: 100vh; transition: margin-left 0.3s ease; }
+        .dashboard-main.expanded { margin-left: 0; }
+        .page-header { background: #ffffff; border-radius: 28px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 18px 50px rgba(38, 75, 58, 0.08); display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+        .page-header h1 { font-size: 1.9rem; color: #202b3f; margin-bottom: 6px; }
+        .page-header p { color: #667085; line-height: 1.6; }
+        .refresh-pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; background: #eaf4ef; color: #2f654f; border-radius: 999px; font-size: 0.85rem; font-weight: 700; white-space: nowrap; }
+        .hardware-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .hardware-card { background: #ffffff; border-radius: 24px; padding: 24px; box-shadow: 0 18px 50px rgba(38, 75, 58, 0.08); min-height: 160px; }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+        .component-icon { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; background: #eaf4ef; color: #2f654f; font-size: 1.35rem; }
+        .hardware-card h3 { font-size: 1rem; margin-bottom: 6px; color: #202b3f; }
+        .hardware-card p { color: #667085; font-size: 0.9rem; line-height: 1.5; }
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 800; }
+        .status-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+        .status-green, .status-connected, .status-ready, .status-inactive { background: #eaf4ef; color: #2f654f; }
+        .status-yellow, .status-scanned { background: #fff7d6; color: #8a6f00; }
+        .status-red, .status-disconnected, .status-not-ready, .status-active { background: #fde8e8; color: #b42318; }
+        .lcd-panel { grid-column: 1 / -1; justify-self: center; width: min(100%, 1050px); background: #17251d; color: #e5ffe8; border-radius: 24px; padding: 26px; box-shadow: 0 18px 50px rgba(38, 75, 58, 0.14); }
+        .lcd-panel h3 { color: #ffffff; font-size: 1rem; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+        .lcd-screen { min-height: 130px; background: #0b1811; border: 2px solid rgba(103, 232, 166, 0.25); border-radius: 18px; padding: 22px; font-family: 'Courier New', monospace; font-size: 1.25rem; line-height: 1.6; white-space: pre-line; display: flex; align-items: center; justify-content: center; text-align: center; color: #b8ffcc; box-shadow: inset 0 0 24px rgba(103, 232, 166, 0.08); }
+        .led-status-card { grid-column: span 3; min-height: auto; }
+        .led-status-layout { display: grid; grid-template-columns: minmax(230px, 0.9fr) minmax(360px, 1.4fr); gap: 20px; align-items: center; }
+        .led-status-card .card-top { margin-bottom: 0; }
+        .led-status-card p { max-width: 380px; }
+        .led-state-summary { margin-top: 14px; }
+        .led-strip { display: grid; grid-template-columns: repeat(3, minmax(110px, 1fr)); gap: 12px; margin-top: 0; }
+        .led-light { min-height: 118px; border-radius: 18px; padding: 16px 12px; background: #f8faf8; border: 1px solid #e4e7ec; text-align: center; color: #667085; font-weight: 800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+        .led-light strong { color: #202b3f; font-size: 1rem; line-height: 1.2; }
+        .led-light small { color: #667085; font-size: 0.76rem; line-height: 1.3; font-weight: 700; }
+        .led-dot { width: 22px; height: 22px; border-radius: 50%; display: block; margin: 0 0 4px; background: #cbd5e1; }
+        .led-light.active.green .led-dot { background: #2f654f; box-shadow: 0 0 18px rgba(47, 101, 79, 0.65); }
+        .led-light.active.yellow .led-dot { background: #d6a722; box-shadow: 0 0 18px rgba(214, 167, 34, 0.65); }
+        .led-light.active.red .led-dot { background: #b42318; box-shadow: 0 0 18px rgba(180, 35, 24, 0.65); }
+        .activity-card { background: #ffffff; border-radius: 24px; padding: 24px; box-shadow: 0 18px 50px rgba(38, 75, 58, 0.08); }
+        .panel-row { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .info-list { display: grid; gap: 12px; margin-top: 16px; }
+        .info-item { display: flex; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid #e4e7ec; color: #667085; }
+        .info-item strong { color: #202b3f; }
+        @media (max-width: 1100px) { .hardware-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lcd-panel, .led-status-card { grid-column: span 2; } .led-status-layout { grid-template-columns: 1fr; } .panel-row { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .dashboard-sidebar { transform: translateX(-100%); } .dashboard-sidebar:not(.hidden) { transform: translateX(0); } .dashboard-main { margin-left: 0; padding-left: 30px; } .sidebar-toggle { left: 20px; } .dashboard-sidebar:not(.hidden) + .sidebar-toggle { left: 330px; } .hardware-grid { grid-template-columns: 1fr; } .lcd-panel, .led-status-card { grid-column: span 1; } .led-strip { grid-template-columns: 1fr; } .led-light { min-height: 92px; } .page-header { flex-direction: column; align-items: flex-start; } }
+    </style>
+</head>
+<body>
+    <aside class="dashboard-sidebar" id="sidebar">
+        <div class="dashboard-logo"><img src="{{ url_for('static', filename='img/logo-wide.png') }}" alt="FileTrack Logo"></div>
+        <p class="dashboard-role">Admin Dashboard</p>
+        <nav class="dashboard-menu">
+            <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-table-columns"></i> Overview</a>
+            <a href="{{ url_for('admin_documents') }}"><i class="fa-solid fa-folder-plus"></i> Documents</a>
+            <a href="{{ url_for('admin_users') }}"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="{{ url_for('admin_logs') }}"><i class="fa-solid fa-clock-rotate-left"></i> Logs</a>
+            <a href="{{ url_for('admin_hardware') }}" class="active"><i class="fa-solid fa-microchip"></i> Hardware</a>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </aside>
+
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+
+    <section class="dashboard-main" id="mainContent">
+        <div class="page-header">
+            <div>
+                <h1>Hardware Status Panel</h1>
+                <p>Monitor ESP32, RFID scanning, LCD messages, buzzer alerts, and LED responses during FileTrack operation.</p>
+            </div>
+            <div class="refresh-pill"><i class="fa-solid fa-rotate"></i> Updates every 2 seconds</div>
+        </div>
+
+        <div class="hardware-grid">
+            <div class="hardware-card">
+                <div class="card-top">
+                    <div>
+                        <h3>ESP32 Controller</h3>
+                        <p>Main controller for RFID, buttons, LCD, LEDs, and buzzer.</p>
+                    </div>
+                    <div class="component-icon"><i class="fa-solid fa-microchip"></i></div>
+                </div>
+                <span class="status-badge" id="esp32Status">Connected</span>
+            </div>
+
+            <div class="hardware-card">
+                <div class="card-top">
+                    <div>
+                        <h3>RFID Reader</h3>
+                        <p>Reads RFID tags attached to physical documents.</p>
+                    </div>
+                    <div class="component-icon"><i class="fa-solid fa-wifi"></i></div>
+                </div>
+                <span class="status-badge" id="rfidStatus">Ready</span>
+            </div>
+
+            <div class="hardware-card">
+                <div class="card-top">
+                    <div>
+                        <h3>Buzzer</h3>
+                        <p>Sound alert for scan success, action completion, or errors.</p>
+                    </div>
+                    <div class="component-icon"><i class="fa-solid fa-volume-high"></i></div>
+                </div>
+                <span class="status-badge" id="buzzerStatus">Inactive</span>
+            </div>
+
+            <div class="lcd-panel">
+                <h3><i class="fa-solid fa-display"></i> LCD Display Message</h3>
+                <div class="lcd-screen" id="lcdDisplay">{{ hardware_status.lcd_display }}</div>
+            </div>
+
+            <div class="hardware-card led-status-card">
+                <div class="led-status-layout">
+                    <div>
+                        <div class="card-top">
+                            <div>
+                                <h3>LED Status</h3>
+                                <p>Current document status indicator for the hardware prototype.</p>
+                            </div>
+                            <div class="component-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                        </div>
+                        <div class="led-state-summary">
+                            <span class="status-badge" id="ledStatus">Green</span>
+                        </div>
+                    </div>
+                    <div class="led-strip">
+                        <div class="led-light green" id="greenLed"><span class="led-dot"></span><strong>Green</strong><small>Available / Returned</small></div>
+                        <div class="led-light yellow" id="yellowLed"><span class="led-dot"></span><strong>Yellow</strong><small>Borrowed</small></div>
+                        <div class="led-light red" id="redLed"><span class="led-dot"></span><strong>Red</strong><small>Unavailable</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-row">
+            <div class="activity-card">
+                <h2>Latest Hardware Activity</h2>
+                <div class="info-list">
+                    <div class="info-item"><span>Selected Action</span><strong id="selectedAction">Standby</strong></div>
+                    <div class="info-item"><span>Last RFID Tag</span><strong id="lastRfid">None</strong></div>
+                    <div class="info-item"><span>Document</span><strong id="lastDocument">No RFID scan yet</strong></div>
+                    <div class="info-item"><span>Last Event</span><strong id="lastEvent">System ready</strong></div>
+                    <div class="info-item"><span>Source</span><strong id="statusSource">Prototype simulation</strong></div>
+                    <div class="info-item"><span>Last Updated</span><strong id="lastUpdated">-</strong></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('hidden');
+            document.getElementById('mainContent').classList.toggle('expanded');
+            localStorage.setItem('sidebarHidden', document.getElementById('sidebar').classList.contains('hidden'));
+        }
+
+        window.addEventListener('load', function () {
+            if (localStorage.getItem('sidebarHidden') === 'true') {
+                document.getElementById('sidebar').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('expanded');
+            }
+            loadHardwareStatus();
+            setInterval(loadHardwareStatus, 2000);
+        });
+
+        function badgeClass(value) {
+            const clean = String(value || '').toLowerCase().replace(/\s+/g, '-');
+            if (['connected', 'ready', 'inactive', 'green'].includes(clean)) return `status-badge status-${clean}`;
+            if (['scanned', 'yellow'].includes(clean)) return `status-badge status-${clean}`;
+            if (['disconnected', 'not-ready', 'active', 'red'].includes(clean)) return `status-badge status-${clean}`;
+            return 'status-badge status-ready';
+        }
+
+        function setBadge(id, value) {
+            const element = document.getElementById(id);
+            element.textContent = value || '-';
+            element.className = badgeClass(value);
+        }
+
+        function setLed(value) {
+            ['greenLed', 'yellowLed', 'redLed'].forEach(id => document.getElementById(id).classList.remove('active'));
+            const clean = String(value || '').toLowerCase();
+            if (clean === 'green') document.getElementById('greenLed').classList.add('active');
+            if (clean === 'yellow') document.getElementById('yellowLed').classList.add('active');
+            if (clean === 'red') document.getElementById('redLed').classList.add('active');
+        }
+
+        function renderHardwareStatus(status) {
+            setBadge('esp32Status', status.esp32);
+            setBadge('rfidStatus', status.rfid_reader);
+            setBadge('buzzerStatus', status.buzzer);
+            setBadge('ledStatus', status.led_status);
+            document.getElementById('lcdDisplay').textContent = status.lcd_display || '-';
+            document.getElementById('selectedAction').textContent = status.selected_action || '-';
+            document.getElementById('lastRfid').textContent = status.last_rfid || '-';
+            document.getElementById('lastDocument').textContent = status.last_document || '-';
+            document.getElementById('lastEvent').textContent = status.last_event || '-';
+            document.getElementById('statusSource').textContent = status.source || '-';
+            document.getElementById('lastUpdated').textContent = status.last_updated || '-';
+            setLed(status.led_status);
+        }
+
+        function loadHardwareStatus() {
+            fetch('/api/hardware/status')
+                .then(response => response.json())
+                .then(renderHardwareStatus)
+                .catch(() => {
+                    setBadge('esp32Status', 'Disconnected');
+                    document.getElementById('lastEvent').textContent = 'Unable to fetch hardware status';
+                });
+        }
+
+    </script>
+</body>
+</html>

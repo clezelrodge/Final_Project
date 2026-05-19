@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileTrack System</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ================= HOME PAGE ================= -->
+    <main class="view active-view" id="homeView">
+
+        <header class="header">
+            <nav class="navbar">
+                <button class="logo logo-button" onclick="showView('homeView')">
+                    <img
+                        class="navbar-logo-img"
+                        src="{{ url_for('static', filename='img/logo-wide.png') }}?v=3"
+                        alt="FileTrack Logo"
+                        style="width: 390px !important; max-width: 390px; height: auto !important; display: block;"
+                    >
+                </button>
+
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#how">How It Works</a></li>
+                    <li><a href="#target">Target Users</a></li>
+                    <li><a href="#benefits">Benefits</a></li>
+                </ul>
+
+                <div class="nav-buttons">
+                    <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+                </div>
+
+                <button class="menu-btn" id="menuBtn">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </nav>
+        </header>
+
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <p class="section-tag">Guidance Office RFID Document System</p>
+
+                    <h1>Smarter Way to Store, Track, and Retrieve Guidance Records</h1>
+
+                    <p class="hero-description">
+                        FileTrack helps school Guidance Offices manage student profile records,
+                        counseling and referral forms, good moral files, incident reports, and monitoring
+                        records through RFID-supported physical document tracking.
+                    </p>
+
+                    <div class="hero-buttons">
+                        <a href="{{ url_for('login') }}" class="btn btn-primary hero-btn">Get Started</a>
+                        <a href="#how" class="btn btn-light hero-btn">See How It Works</a>
+                    </div>
+
+                    <div class="hero-highlights">
+                        <div>
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Fast Search</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-box-archive"></i>
+                            <span>Organized Storage</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Secure Tracking</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-info-box">
+                    <div class="purpose-badge">
+                        <i class="fa-solid fa-folder-tree"></i>
+                        <span>Guidance Records Management</span>
+                    </div>
+
+                    <div class="hero-info-header">
+                        <div class="hero-icon-wrap">
+                            <i class="fa-solid fa-file-circle-check"></i>
+                        </div>
+
+                        <div>
+                            <h3>FileTrack Purpose</h3>
+                            <p class="hero-info-subtitle">
+                                Organized, faster, and more secure Guidance Office document handling
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="hero-info-description">
+                        FileTrack is designed to reduce misplaced student files, slow retrieval,
+                        untracked document access, and unclear storage locations in a school Guidance Office.
+                    </p>
+
+                    <div class="hero-info-list">
+                        <div>
+                            <i class="fa-solid fa-check"></i>
+                            <span>Register physical documents digitally</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-check"></i>
+                            <span>Assign records to Column 1, Column 2, or Column 3</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-check"></i>
+                            <span>Track retrieval and return activities</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-check"></i>
+                            <span>Support ESP32, RFID scanner, LEDs, buzzer, and LCD integration</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="about section" id="about">
+            <div class="section-heading">
+                <p class="section-tag">About FileTrack</p>
+                <h2>What is FileTrack?</h2>
+                <p>
+                    FileTrack is a hardware-software integrated system created for school Guidance Offices
+                    that need a clearer way to store, locate, borrow, return, and monitor physical student records.
+                </p>
+            </div>
+
+            <div class="about-content">
+                <div class="about-image-box">
+                    <img src="{{ url_for('static', filename='img/img2.png') }}" alt="Organized physical document storage for FileTrack">
+                </div>
+
+                <div class="about-text">
+                    <h3>Designed for Guidance Office Document Management</h3>
+
+                    <p>
+                        Guidance Offices still handle important paper records such as student information sheets,
+                        counseling session forms, referral forms, good moral records, incident reports, and
+                        follow-up monitoring files. Manual storage can cause delays, misplaced files, and unclear
+                        borrowing or return history.
+                    </p>
+
+                    <p>
+                        FileTrack solves this by combining a digital dashboard with ESP32 and RFID hardware.
+                        The website records the document, student, RFID tag, storage column, status, access logs,
+                        and hardware scan activity.
+                    </p>
+
+                    <div class="about-points">
+                        <div>
+                            <i class="fa-solid fa-check"></i>
+                            <span>Organized Guidance Office records</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-check"></i>
+                            <span>Faster document retrieval</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-check"></i>
+                            <span>Improved tracking and monitoring</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how section" id="how">
+            <div class="section-heading">
+                <p class="section-tag">How FileTrack Works</p>
+                <h2>Simple Process from Storage to Retrieval</h2>
+                <p>
+                    FileTrack follows a clear process that helps users register, store, track,
+                    retrieve, and return physical documents properly.
+                </p>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <i class="fa-solid fa-file-circle-plus"></i>
+                    <h3>Register Document</h3>
+                    <p>The admin enters the document ID, RFID tag, student name, student ID, document type, assigned user, and remarks.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <i class="fa-solid fa-box-archive"></i>
+                    <h3>Assign Location</h3>
+                    <p>The system assigns the record to Column 1, Column 2, or Column 3 based on the document type.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <i class="fa-solid fa-barcode"></i>
+                    <h3>Track Using Hardware</h3>
+                    <p>The ESP32, RFID reader, LEDs, buzzer, and LCD help identify and monitor the physical document.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">04</div>
+                    <i class="fa-solid fa-magnifying-glass-location"></i>
+                    <h3>Search and Retrieve</h3>
+                    <p>Users can search by RFID, student name, student ID, document ID, title, or document type.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">05</div>
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <h3>Record Activity</h3>
+                    <p>The system logs located, borrowed, returned, and hardware-scanned documents.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="target section" id="target">
+            <div class="section-heading">
+                <p class="section-tag">Target Users</p>
+                <h2>Built for School Guidance Offices</h2>
+                <p>
+                    This prototype focuses on authorized Guidance Office personnel who handle student support records.
+                </p>
+            </div>
+
+            <div class="target-carousel-wrap">
+                <button class="target-arrow target-arrow-left" type="button" aria-label="Previous target users">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <div class="target-carousel" id="targetCarousel">
+                    <div class="target-card">
+                        <i class="fa-solid fa-school"></i>
+                        <h3>Guidance Office</h3>
+                        <p>For managing student profile records, counseling forms, referrals, good moral records, and incident monitoring files.</p>
+                    </div>
+
+                    <div class="target-card">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <h3>Guidance Counselor</h3>
+                        <p>For locating student files, checking counseling records, and monitoring follow-up documents.</p>
+                    </div>
+
+                    <div class="target-card">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <h3>School Administrator</h3>
+                        <p>For monitoring document access, staff accounts, RFID activity, hardware status, and audit logs.</p>
+                    </div>
+
+                    <div class="target-card">
+                        <i class="fa-solid fa-id-card-clip"></i>
+                        <h3>Authorized Staff</h3>
+                        <p>For borrowing, returning, searching, and recording approved Guidance Office documents.</p>
+                    </div>
+
+                    <div class="target-card">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <h3>Records Assistant</h3>
+                        <p>For registering RFID tags, assigning document columns, and keeping physical records organized.</p>
+                    </div>
+                </div>
+
+                <button class="target-arrow target-arrow-right" type="button" aria-label="Next target users">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="target-dots" aria-label="Target users carousel controls">
+                <button class="target-dot active" type="button" aria-label="Go to first target users set"></button>
+                <button class="target-dot" type="button" aria-label="Go to second target users set"></button>
+                <button class="target-dot" type="button" aria-label="Go to third target users set"></button>
+            </div>
+        </section>
+
+        <section class="benefits section" id="benefits">
+            <div class="section-heading">
+                <p class="section-tag">Key Benefits</p>
+                <h2>Benefits of Using FileTrack</h2>
+                <p>
+                    FileTrack helps improve daily office work by making physical document management
+                    more efficient, accurate, secure, and easy to monitor.
+                </p>
+            </div>
+
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h3>Improved Efficiency</h3>
+                    <p>Reduces the time spent searching for documents manually.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <h3>Better Security</h3>
+                    <p>Limits access to authorized users and records document activities.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <h3>Higher Accuracy</h3>
+                    <p>Helps reduce human errors in storing and retrieving documents.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <h3>Easy Monitoring</h3>
+                    <p>Allows administrators to monitor document columns, users, RFID scans, and movement history.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta section">
+            <div class="cta-box">
+                <h2>Start Organizing Guidance Office Records with FileTrack</h2>
+                <p>
+                    Use one connected system to store, track, retrieve, return, and monitor physical student guidance records.
+                </p>
+
+                <a href="{{ url_for('login') }}" class="btn btn-light">Login to System</a>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div>
+                    <div class="footer-logo">
+                        <img src="{{ url_for('static', filename='img/logo-wide.png') }}" alt="FileTrack Logo" style="height:52px; width:auto; object-fit:contain;">
+                    </div>
+                    <p>Automated Storage and Retrieval System for School Guidance Office Records.</p>
+                </div>
+
+                <div>
+                    <h4>Quick Links</h4>
+                    <a href="#home">Home</a>
+                    <a href="#about">About</a>
+                    <a href="#how">How It Works</a>
+                    <a href="#target">Target Users</a>
+                </div>
+
+                <div>
+                    <h4>System Access</h4>
+                    <a href="{{ url_for('login') }}" class="footer-link-btn">Login</a>
+                    <p>Dashboard access is only available after login.</p>
+                </div>
+
+                <div>
+                    <h4>Project Use</h4>
+                    <p>Guidance Offices</p>
+                    <p>Guidance Counselors</p>
+                    <p>School Administrators</p>
+                    <p>Authorized Staff</p>
+                    <p>Records Assistants</p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 FileTrack. All rights reserved.</p>
+            </div>
+        </footer>
+
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

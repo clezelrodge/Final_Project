@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storage Locations - FileTrack Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #dceee6, #f5f0df); min-height: 100vh; }
+        .dashboard-sidebar { position: fixed; left: 0; top: 0; width: 320px; height: 100vh; background: linear-gradient(180deg, #2f654f, #8a6f47); color: white; padding: 20px; overflow-y: auto; transition: transform 0.3s ease; z-index: 100; }
+        .dashboard-sidebar.hidden { transform: translateX(-100%); }
+        .sidebar-toggle { position: fixed; left: 340px; top: 20px; width: 44px; height: 44px; background: rgba(47, 101, 79, 0.8); backdrop-filter: blur(10px); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; transition: all 0.3s ease; z-index: 101; }
+        .dashboard-sidebar.hidden ~ .sidebar-toggle, .dashboard-sidebar.hidden + .sidebar-toggle { left: 20px; }
+        .dashboard-logo { display: flex; align-items: center; justify-content: center; min-height: 104px; width: 100%; margin: 24px auto 34px; padding: 6px 8px; overflow: hidden; background: rgba(255, 255, 255, 0.94); border-radius: 14px; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14); }
+        .dashboard-logo img { width: 255px; max-width: 100%; height: auto; object-fit: contain; filter: contrast(1.18) saturate(1.08); }
+        .dashboard-role { color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        .dashboard-menu { display: flex; flex-direction: column; gap: 5px; }
+        .dashboard-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 14px; transition: all 0.3s; }
+        .dashboard-menu a:hover, .dashboard-menu a.active { background: rgba(255, 255, 255, 0.16); color: white; }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(255, 255, 255, 0.16); color: white; border-radius: 14px; width: 100%; margin-top: 30px; text-decoration: none; font-weight: 700; }
+        .dashboard-main { margin-left: 320px; padding: 30px 30px 30px 80px; min-height: 100vh; transition: margin-left 0.3s ease; }
+        .dashboard-main.expanded { margin-left: 0; }
+        .page-header { margin-bottom: 30px; }
+        .page-header h1 { font-size: 1.8rem; color: #202b3f; margin-bottom: 5px; }
+        .page-header p { color: #667085; }
+        .columns-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+        .column-card { background: #fff; border-radius: 28px; padding: 26px; box-shadow: 0 18px 50px rgba(38, 75, 58, 0.08); }
+        .column-icon { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: #2f654f; background: #eaf4ef; font-size: 1.5rem; margin-bottom: 18px; }
+        .column-card h2 { color: #202b3f; font-size: 1.25rem; margin-bottom: 8px; }
+        .column-card p { color: #667085; line-height: 1.5; margin-bottom: 20px; }
+        .metric-list { display: grid; gap: 10px; }
+        .metric { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid #e4e7ec; color: #667085; }
+        .metric strong { color: #202b3f; }
+        @media (max-width: 1000px) { .columns-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .dashboard-sidebar { transform: translateX(-100%); } .dashboard-main { margin-left: 0; } .sidebar-toggle { left: 20px; } }
+    </style>
+</head>
+<body>
+    <aside class="dashboard-sidebar" id="sidebar">
+        <div class="dashboard-logo"><img src="{{ url_for('static', filename='img/logo-wide.png') }}" alt="FileTrack Logo"></div>
+        <p class="dashboard-role">Admin Dashboard</p>
+        <nav class="dashboard-menu">
+            <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-table-columns"></i> Overview</a>
+            <a href="{{ url_for('admin_documents') }}"><i class="fa-solid fa-folder-plus"></i> Documents</a>
+            <a href="{{ url_for('admin_users') }}"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="{{ url_for('admin_logs') }}"><i class="fa-solid fa-clock-rotate-left"></i> Logs</a>
+            <a href="{{ url_for('admin_hardware') }}"><i class="fa-solid fa-microchip"></i> Hardware</a>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </aside>
+
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+
+    <section class="dashboard-main" id="mainContent">
+        <div class="page-header">
+            <h1>Storage Locations</h1>
+            <p>Guidance Office storage is limited to the three physical columns in the hardware prototype.</p>
+        </div>
+        <div class="columns-grid">
+            {% for col in columns %}
+            <div class="column-card">
+                <div class="column-icon"><i class="fa-solid fa-box-archive"></i></div>
+                <h2>Column {{ col.column_label }}</h2>
+                <p>{{ col.assigned_documents }}</p>
+                <div class="metric-list">
+                    <div class="metric"><span>Total Documents</span><strong>{{ col.total_documents }}</strong></div>
+                    <div class="metric"><span>Available</span><strong>{{ col.available_count }}</strong></div>
+                    <div class="metric"><span>Borrowed</span><strong>{{ col.borrowed_count }}</strong></div>
+                    <div class="metric"><span>Pending</span><strong>{{ col.pending_count }}</strong></div>
+                    <div class="metric"><span>Missing</span><strong>{{ col.missing_count }}</strong></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('hidden');
+            document.getElementById('mainContent').classList.toggle('expanded');
+            localStorage.setItem('sidebarHidden', document.getElementById('sidebar').classList.contains('hidden'));
+        }
+    </script>
+</body>
+</html>

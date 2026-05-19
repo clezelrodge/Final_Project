@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileTrack - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #1f2b25;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: -18px;
+            background: url("{{ url_for('static', filename='img/img2.png') }}") center / cover no-repeat;
+            filter: blur(8px);
+            transform: scale(1.04);
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(21, 29, 24, 0.55), rgba(21, 29, 24, 0.22)),
+                rgba(255, 255, 255, 0.12);
+            z-index: -1;
+        }
+
+        /* Flash Messages */
+        .flash-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .flash-message {
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+        }
+
+        .flash-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .flash-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .flash-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Auth Container */
+        .auth-container {
+            width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 32px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Brand Panel */
+        .brand-panel {
+            width: 45%;
+            background: linear-gradient(135deg, #2f654f, #8a6f47);
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            top: -100px;
+            right: -100px;
+        }
+
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            bottom: -60px;
+            left: -60px;
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: min(100%, 360px);
+            margin: 0 auto 34px;
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .brand-logo img {
+            display: block;
+            width: 100%;
+            max-width: 360px;
+            height: auto;
+            object-fit: contain;
+            background: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+            filter: contrast(1.24) saturate(1.12);
+        }
+
+        .brand-title {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+
+        .brand-subtitle {
+            font-size: 14px;
+            line-height: 1.7;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .feature-list i {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+
+        /* Form Panel */
+        .form-panel {
+            width: 55%;
+            padding: 50px 45px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .nav-back {
+            position: absolute;
+            top: 24px;
+            left: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667085;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-back:hover {
+            color: #2f654f;
+        }
+
+        .nav-back i {
+            font-size: 12px;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: #f3f5f2;
+            border-radius: 14px;
+            padding: 5px;
+            margin-bottom: 30px;
+            margin-top: 30px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #667085;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn.active {
+            background: #fff;
+            color: #2f654f;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #202b3f;
+            margin-bottom: 6px;
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            color: #667085;
+            margin-bottom: 24px;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .role-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border: 2px solid #e4e7ec;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #667085;
+            transition: all 0.3s;
+            background: #fff;
+        }
+
+        .role-option:hover {
+            border-color: #2f654f;
+        }
+
+        .role-option.selected {
+            border-color: #2f654f;
+            background: #eaf4ef;
+            color: #2f654f;
+        }
+
+        .role-option i {
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 14px;
+            height: 48px;
+            background: #f6f8f6;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            background: #fff;
+            border-color: #2f654f;
+        }
+
+        .input-wrapper i {
+            color: #8a6f47;
+            font-size: 14px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            color: #202b3f;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #94a3b8;
+        }
+
+        .password-toggle {
+            border: none;
+            background: transparent;
+            color: #2f654f;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .password-toggle:hover {
+            background: rgba(47, 101, 79, 0.08);
+        }
+
+        .form-help {
+            display: flex;
+            justify-content: flex-end;
+            margin: -6px 0 18px;
+        }
+
+        .form-help a {
+            color: #2f654f;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .form-help a:hover {
+            text-decoration: underline;
+        }
+
+        .submit-btn {
+            width: 100%;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            background: #2f654f;
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 4px;
+        }
+
+        .submit-btn:hover {
+            background: #234d3b;
+            transform: translateY(-1px);
+        }
+
+        .submit-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .divider {
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: calc(50% - 60px);
+            height: 1px;
+            background: #e4e7ec;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .demo-credentials p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .demo-cred {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: #f6f8f6;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .demo-cred span {
+            color: #667085;
+            font-weight: 500;
+        }
+
+        .demo-cred code {
+            background: #eaf4ef;
+            color: #2f654f;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .password-strength {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .strength-bar {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: #e4e7ec;
+            transition: all 0.3s;
+        }
+
+        .strength-bar.active.weak {
+            background: #ef4444;
+        }
+
+        .strength-bar.active.medium {
+            background: #f59e0b;
+        }
+
+        .strength-bar.active.strong {
+            background: #10b981;
+        }
+
+        .strength-text {
+            font-size: 11px;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .input-hint {
+            font-size: 13px;
+            color: #667085;
+            margin-top: 16px;
+        }
+
+        .input-hint a {
+            color: #2f654f;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .brand-panel {
+                width: 100%;
+                padding: 40px 30px;
+                min-height: 280px;
+            }
+
+            .form-panel {
+                width: 100%;
+                padding: 40px 30px;
+            }
+
+            .brand-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">
+            <i
+                class="fa-solid fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' if category == 'error' else 'info-circle' }}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="auth-container">
+        <div class="brand-panel">
+            <div class="brand-content">
+                <div class="brand-logo">
+                    <img src="{{ url_for('static', filename='img/logo-wide.png') }}?v=4" alt="FileTrack Logo">
+                </div>
+                <h1 class="brand-title">Document Management System</h1>
+                <p class="brand-subtitle">Secure, efficient tracking of physical documents with RFID technology.</p>
+                <ul class="feature-list">
+                    <li><i class="fa-solid fa-shield-halved"></i> RFID-Powered Tracking</li>
+                    <li><i class="fa-solid fa-chart-line"></i> Real-time Analytics</li>
+                    <li><i class="fa-solid fa-users-gear"></i> Role-Based Access</li>
+                    <li><i class="fa-solid fa-clock-rotate-left"></i> Complete Audit Trail</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="form-panel">
+            <a href="{{ url_for('index') }}" class="nav-back">
+                <i class="fa-solid fa-arrow-left"></i> Back to Homepage
+            </a>
+
+
+
+            <!-- Login Form -->
+            <div class="auth-form active" style="display: block;">
+                <h2 class="form-title">Welcome Back</h2>
+                <p class="form-subtitle">Sign in to access your dashboard</p>
+
+                <div class="role-selector">
+                    <div class="role-option selected" onclick="selectRole('user', this)">
+                        <i class="fa-solid fa-user"></i> User
+                    </div>
+                    <div class="role-option" onclick="selectRole('admin', this)">
+                        <i class="fa-solid fa-user-shield"></i> Admin
+                    </div>
+                </div>
+
+                <form action="{{ url_for('login') }}" method="POST" onsubmit="handleSubmit(this)">
+                    <input type="hidden" name="role" id="selectedRole" value="user">
+
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" name="username" placeholder="Username" required autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" name="password" id="loginPassword" placeholder="Password" required
+                                autocomplete="current-password">
+                            <button type="button" class="password-toggle"
+                                onclick="togglePassword('loginPassword', this)">SHOW</button>
+                        </div>
+                    </div>
+
+                    <div class="form-help">
+                        <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+                    </div>
+
+                    <div class="input-group" id="adminPinGroup" style="display: none;">
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-key"></i>
+                            <input type="password" name="admin_pin" id="adminPinInput" placeholder="Admin PIN">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Sign In</button>
+                </form>
+            </div>
+
+
+        </div>
+    </div>
+
+    <script>
+
+
+        function selectRole(role, element) {
+            document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('selectedRole').value = role;
+            
+            const adminPinGroup = document.getElementById('adminPinGroup');
+            const adminPinInput = document.getElementById('adminPinInput');
+            if (role === 'admin') {
+                adminPinGroup.style.display = 'block';
+                adminPinInput.required = true;
+            } else {
+                adminPinGroup.style.display = 'none';
+                adminPinInput.required = false;
+            }
+        }
+
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = 'HIDE';
+            } else {
+                input.type = 'password';
+                button.textContent = 'SHOW';
+            }
+        }
+
+
+
+        function handleSubmit(form) {
+            const btn = form.querySelector('.submit-btn');
+            btn.classList.add('loading');
+            btn.textContent = 'Signing in...';
+        }
+
+        setTimeout(() => {
+            const fc = document.querySelector('.flash-container');
+            if (fc) { fc.style.opacity = '0'; setTimeout(() => fc.remove(), 500); }
+        }, 5000);
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - FileTrack Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #dceee6, #f5f0df); min-height: 100vh; }
+        .dashboard-sidebar { position: fixed; left: 0; top: 0; width: 320px; height: 100vh; background: linear-gradient(180deg, #2f654f, #8a6f47); color: white; padding: 20px; overflow-y: auto; z-index: 100; transition: transform 0.3s ease; }
+        .dashboard-sidebar.hidden { transform: translateX(-100%); }
+        .sidebar-toggle { position: fixed; left: 340px; top: 20px; width: 44px; height: 44px; background: rgba(47, 101, 79, 0.8); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; z-index: 101; }
+        .dashboard-sidebar.hidden ~ .sidebar-toggle, .dashboard-sidebar.hidden + .sidebar-toggle { left: 20px; }
+        .dashboard-logo { display: flex; align-items: center; justify-content: center; min-height: 104px; width: 100%; margin: 24px auto 34px; padding: 6px 8px; overflow: hidden; background: rgba(255, 255, 255, 0.94); border-radius: 14px; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14); }
+        .dashboard-logo img { width: 255px; max-width: 100%; height: auto; object-fit: contain; filter: contrast(1.18) saturate(1.08); }
+        .dashboard-role { color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+        .dashboard-menu { display: flex; flex-direction: column; gap: 5px; }
+        .dashboard-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 15px; color: rgba(255, 255, 255, 0.85); text-decoration: none; border-radius: 14px; transition: all 0.3s; }
+        .dashboard-menu a:hover, .dashboard-menu a.active { background: rgba(255, 255, 255, 0.16); color: white; }
+        .logout-btn { display: flex; align-items: center; gap: 10px; padding: 12px 15px; background: rgba(255, 255, 255, 0.16); color: white; border-radius: 14px; width: 100%; margin-top: 30px; text-decoration: none; font-weight: 700; }
+        .dashboard-main { margin-left: 320px; padding: 30px 30px 30px 80px; min-height: 100vh; transition: margin-left 0.3s ease; }
+        .dashboard-main.expanded { margin-left: 0; }
+        .page-header { margin-bottom: 30px; }
+        .page-header h1 { font-size: 1.8rem; color: #202b3f; margin-bottom: 5px; }
+        .page-header p { color: #667085; }
+        .card { background: white; padding: 28px; border-radius: 28px; box-shadow: 0 18px 50px rgba(38, 75, 58, 0.08); margin-bottom: 22px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+        th { color: #202b3f; font-weight: 700; font-size: 0.82rem; text-transform: uppercase; }
+        td { color: #667085; }
+        .badge { display: inline-flex; padding: 5px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+        .badge.Pending, .badge.Search { background: #fff7d6; color: #8a6f00; }
+        .badge.Borrowed, .badge.Check { background: #fff1e6; color: #9a5a1f; }
+        .badge.Missing { background: #fde8e8; color: #b42318; }
+        .badge.Return { background: #eaf4ef; color: #2f654f; }
+        @media (max-width: 768px) { .dashboard-sidebar { transform: translateX(-100%); } .dashboard-main { margin-left: 0; } .sidebar-toggle { left: 20px; } }
+    </style>
+</head>
+<body>
+    <aside class="dashboard-sidebar" id="sidebar">
+        <div class="dashboard-logo"><img src="{{ url_for('static', filename='img/logo-wide.png') }}" alt="FileTrack Logo"></div>
+        <p class="dashboard-role">Admin Dashboard</p>
+        <nav class="dashboard-menu">
+            <a href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-table-columns"></i> Overview</a>
+            <a href="{{ url_for('admin_documents') }}"><i class="fa-solid fa-folder-plus"></i> Documents</a>
+            <a href="{{ url_for('admin_users') }}"><i class="fa-solid fa-users"></i> Users</a>
+            <a href="{{ url_for('admin_logs') }}"><i class="fa-solid fa-clock-rotate-left"></i> Logs</a>
+            <a href="{{ url_for('admin_hardware') }}"><i class="fa-solid fa-microchip"></i> Hardware</a>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </aside>
+
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+
+    <section class="dashboard-main" id="mainContent">
+        <div class="page-header">
+            <h1>Notifications</h1>
+            <p>Pending requests, borrowed documents, returned documents, missing records, and today's RFID activity.</p>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom:18px;">Document Alerts</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document ID</th>
+                        <th>Student</th>
+                        <th>Document</th>
+                        <th>Type</th>
+                        <th>RFID</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in document_alerts %}
+                    <tr>
+                        <td><code>{{ item.document_code or '-' }}</code></td>
+                        <td>{{ item.student_name or 'Not Set' }}</td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.document_type or 'Not Categorized' }}</td>
+                        <td><code>{{ item.rfid_tag }}</code></td>
+                        <td><span class="badge {{ item.status }}">{{ item.status }}</span></td>
+                        <td>{{ item.remarks or '-' }}</td>
+                        <td>{{ item.formatted_time }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" style="text-align:center;">No pending, borrowed, or missing document alerts.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom:18px;">Today's Activity</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document ID</th>
+                        <th>Student</th>
+                        <th>Document</th>
+                        <th>Type</th>
+                        <th>RFID</th>
+                        <th>Action</th>
+                        <th>Remarks</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in activity_today %}
+                    <tr>
+                        <td><code>{{ item.document_code or '-' }}</code></td>
+                        <td>{{ item.student_name or 'Not Set' }}</td>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.document_type or 'Not Categorized' }}</td>
+                        <td><code>{{ item.rfid_tag }}</code></td>
+                        <td><span class="badge {{ item.action.split()[0] }}">{{ item.action }}</span></td>
+                        <td>{{ item.remarks or '-' }}</td>
+                        <td>{{ item.formatted_time }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" style="text-align:center;">No activity recorded today.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('hidden');
+            document.getElementById('mainContent').classList.toggle('expanded');
+            localStorage.setItem('sidebarHidden', document.getElementById('sidebar').classList.contains('hidden'));
+        }
+    </script>
+</body>
+</html>
